@@ -5,16 +5,7 @@ Definition of AdaptiveSweep
 
 import numpy as np
 from .base import Sweep, SweepStep, SweepResult
-from abc import ABC, abstractmethod
-from itertools import chain, repeat
 from adaptive import Learner1D
-from time import time
-from math import ceil
-
-# TODO test all step_size (also factor < 1)
-#      test start > stop and stop > start
-#      check update is called
-#      check multidimensionnal ?
 
 
 class AdaptiveSweep(Sweep):
@@ -26,11 +17,9 @@ class AdaptiveSweep(Sweep):
     A sweep is an iterable object that returns a step at each iteration.
 
     The result of a sweep can be accessed with the `result` property.
-
-    TODO should npoints be renamed nsteps ?
     """
 
-    def __init__(self, start, stop, npoints, update=None):
+    def __init__(self, start, stop, nsteps, update=None):
         """
         Initializae the sweep.
 
@@ -40,8 +29,8 @@ class AdaptiveSweep(Sweep):
             The start x-value of the sweep.
         stop : float
             The stop x-value of the sweep.
-        npoints : int
-            The number of points.
+        nsteps : int
+            The number of steps.
         update : function
             An optionnal function method can be passed to be called at each step.
         """
@@ -50,7 +39,7 @@ class AdaptiveSweep(Sweep):
 
         self.start = start
         self.stop = stop
-        self.npoints = npoints
+        self.nsteps = nsteps
         self._learner = None
         self._step = None
 
@@ -80,7 +69,7 @@ class AdaptiveSweep(Sweep):
         if self._step is not None:
             self._learner.tell(self._step.x, self._step.y)
 
-        if self._learner.npoints >= self.npoints:
+        if self._learner.npoints >= self.nsteps:
             raise StopIteration()
 
         self._step = SweepStep(x=self._learner.ask(1)[0][0])
@@ -92,4 +81,4 @@ class AdaptiveSweep(Sweep):
         return self._step
 
     def __len__(self):
-        return self.npoints
+        return self.nsteps
